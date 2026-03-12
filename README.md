@@ -147,4 +147,27 @@ tools:
 
 ## License
 
-MIT
+This project is licensed under the **Talent Market Attribution License (TMAL) v1.0**.
+
+You are free to use, modify, and distribute this template commercially, provided you
+retain the Citation section below in your README. See [LICENSE](./LICENSE) for full terms.
+
+---
+
+## Citation
+
+> **DO NOT REMOVE THIS SECTION** — Required by the [Talent Market Attribution License](./LICENSE).
+
+This talent was built using the [Talent Market](https://carbonkites.com) template by [CarbonKite](https://github.com/CarbonKite).
+
+```
+@software{talentmarket,
+  title  = {Talent Market - AI Agent Marketplace},
+  author = {CarbonKite},
+  url    = {https://carbonkites.com},
+  year   = {2026}
+}
+```
+
+If you publish or deploy a talent based on this template, please keep this section
+intact in your README or equivalent documentation.
