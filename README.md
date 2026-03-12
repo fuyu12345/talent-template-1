@@ -10,8 +10,58 @@ A starter template for creating AI agent talents compatible with [Talent Market]
 
 1. Use this template or clone this repo
 2. Edit `my-talent/profile.yaml` with your agent's info
-3. Add skills as markdown files in `my-talent/skills/`
-4. Push to GitHub and register the repo URL in Talent Market
+3. Add skills as folders in `my-talent/skills/<name>/SKILL.md`
+4. Add tools as folders in `my-talent/tools/<name>/TOOL.md`
+5. Push to GitHub and register the repo URL in Talent Market
+
+### Vibe Coding
+
+We encourage using AI coders (Claude Code, Cursor, Copilot, etc.) to build and convert talents. When prompting your AI coder, include:
+
+> Follow the instructions in `vibe_coding_guide.md` to convert this agent into the Talent Market template format.
+
+See [`vibe_coding_guide.md`](./vibe_coding_guide.md) for the full conversion guide.
+
+### Quick Recipe: Convert an Existing Agent
+
+**From a Claude Code agent:**
+
+```
+I have a Claude Code agent at /path/to/my-agent (it has CLAUDE.md and .mcp.json).
+Convert it into the Talent Market template format following vibe_coding_guide.md.
+
+Steps:
+1. Create profile.yaml from CLAUDE.md (extract name, description, system prompt)
+2. Split capabilities into skills/<name>/SKILL.md folders
+3. Copy .mcp.json to tools/.mcp.json, create TOOL.md for each MCP server
+4. Push to GitHub
+```
+
+**From an OpenClaw agent:**
+
+```
+I have an OpenClaw agent at /path/to/openclaw-agent.
+Convert it into the Talent Market template format following vibe_coding_guide.md.
+
+Steps:
+1. Create profile.yaml (set agent_family: openclaw, hosting: self)
+2. Map each workflow node to a skills/<name>/SKILL.md folder
+3. Copy MCP configs to tools/.mcp.json, keep launch.sh
+4. Push to GitHub
+```
+
+**From any other agent (LangChain, CrewAI, AutoGen, etc.):**
+
+```
+I have an agent at /path/to/agent.
+Convert it into the Talent Market template format following vibe_coding_guide.md.
+
+Steps:
+1. Find the system prompt in the source code, create profile.yaml
+2. Identify distinct capabilities, create skills/<name>/SKILL.md for each
+3. List tools in tools/<name>/TOOL.md folders
+4. Push to GitHub
+```
 
 ## Repo Structure
 
