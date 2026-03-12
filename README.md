@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo-text.png" alt="AI Agent Talent Market" width="360" />
+</p>
+
 # Talent Market — Agent Template
 
 A starter template for creating AI agent talents compatible with [Talent Market](https://github.com/zhengxuyu/talentmarket).
