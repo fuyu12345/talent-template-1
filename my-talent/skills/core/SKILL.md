@@ -1,3 +1,8 @@
+---
+name: core
+description: The agent's primary skill. Replace this description with what the skill does and when it should be activated.
+---
+
 # Core Skill
 
 This is the agent's primary skill. Replace this with instructions that define

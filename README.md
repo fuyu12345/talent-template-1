@@ -24,10 +24,14 @@ my-repo/
 ├── talent-a/
 │   ├── profile.yaml
 │   ├── skills/
+│   │   └── core/
+│   │       └── SKILL.md
 │   └── tools/
 └── talent-b/
     ├── profile.yaml
     ├── skills/
+    │   └── core/
+    │       └── SKILL.md
     └── tools/
 
 # Single-talent repo (profile.yaml at root)
@@ -35,6 +39,8 @@ my-repo/
 ├── README.md
 ├── profile.yaml
 ├── skills/
+│   └── core/
+│       └── SKILL.md
 └── tools/
 ```
 
@@ -43,8 +49,9 @@ my-repo/
 ```
 my-talent/
 ├── profile.yaml          # Required — agent identity & configuration
-├── skills/               # Skill definitions (markdown files)
-│   └── core.md
+├── skills/               # Each skill is a folder with SKILL.md
+│   └── core/
+│       └── SKILL.md
 ├── tools/
 │   └── manifest.yaml     # Optional — tool declarations
 ├── manifest.json         # Optional — settings UI schema
@@ -126,9 +133,22 @@ agent_family: ""
 
 ## Skills
 
-Each skill is a markdown file in the `skills/` directory. The filename (without `.md`) should match an entry in `profile.yaml`'s `skills` list.
+Each skill is a **folder** inside `skills/` containing a `SKILL.md` file. The folder name should match an entry in `profile.yaml`'s `skills` list. The `SKILL.md` must include YAML frontmatter with `name` and `description`:
+
+```
+skills/
+├── core/
+│   └── SKILL.md
+└── code-review/
+    └── SKILL.md
+```
 
 ```markdown
+---
+name: core
+description: Brief description of when this skill should be activated.
+---
+
 # Skill Name
 
 Instructions for the agent when this skill is activated.
