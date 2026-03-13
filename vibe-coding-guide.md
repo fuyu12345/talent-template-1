@@ -1,22 +1,42 @@
 # Vibe Coding Guide — Converting Agents to Talent Market Format
 
-This guide explains how to convert an AI agent definition (typically a markdown file with YAML frontmatter) into a **Talent Market talent** following the `talent-template` structure.
+> **For AI coders (Claude Code, Cursor, Copilot, etc.):**
+> This guide tells you exactly how to convert an existing AI agent project
+> into the Talent Market template format so it can be published on
+> [carbonkites.com](https://carbonkites.com).
 
-## Output Checklist (ALL items required)
+## Target Structure
 
-You MUST produce exactly **4 files** in the output directory. Do not skip any.
+Every talent is a directory with this layout:
 
 ```
 <talent-id>/
-├── profile.yaml              ← REQUIRED (agent metadata)
+├── profile.yaml              ← REQUIRED (agent metadata, including avatar emoji)
 ├── DESCRIPTION.md             ← REQUIRED (full agent description, displayed on detail page)
-├── skills/
-│   └── core.md               ← REQUIRED (skill definition template)
-└── tools/
-    └── manifest.yaml          ← REQUIRED (tool declarations template)
+├── skills/                    ← REQUIRED
+│   └── core.md               ←   skill definition template
+├── tools/                     ← REQUIRED if agent has tools
+│   ├── .mcp.json              ←   MCP server definitions (standard format)
+│   ├── manifest.yaml          ←   tool declarations (simple agents)
+│   ├── <tool-name>/           ←   one folder per custom tool
+│   │   ├── TOOL.md            ←     tool description & usage docs
+│   │   ├── manifest.yaml      ←     tool metadata (name, type, params)
+│   │   └── run.sh             ←     tool implementation (if custom)
+├── launch.sh                  ← Optional — self-hosted startup script
+├── heartbeat.sh               ← Optional — health check script
+└── manifest.json              ← Optional — settings UI schema
 ```
 
-**Verify before finishing:** All 4 files exist? `profile.yaml` has all required fields? `DESCRIPTION.md` contains the full agent description?
+## Output Checklist
+
+**Minimum required files (ALL must exist):**
+
+- [ ] `profile.yaml` — with all required fields including `avatar`
+- [ ] `DESCRIPTION.md` — verbatim copy of source body
+- [ ] `skills/core.md` — skill definition template
+- [ ] `tools/manifest.yaml` — tool declarations (or `tools/` with proper structure if agent has tools)
+
+**Verify before finishing:** All files exist? `profile.yaml` has `avatar`? `DESCRIPTION.md` is verbatim?
 
 ---
 
@@ -56,6 +76,7 @@ Extract metadata from the source frontmatter and fill in this template exactly:
 ```yaml
 id: <talent-id>
 name: <from source frontmatter "name" field>
+avatar: <emoji — see Avatar Rules below>
 description: >
   <from source frontmatter "description" field — keep original wording>
 role: <specific job role — see Role Guidelines below>
@@ -76,12 +97,37 @@ system_prompt_template: >
 agent_family: ""
 ```
 
+### Avatar Rules (REQUIRED)
+
+The `avatar` field is **mandatory**. It is the agent's visual identity shown on talent cards.
+
+1. If the source frontmatter has an `emoji` field → use that emoji
+2. If the source frontmatter has no `emoji` → pick a relevant emoji based on the agent's role:
+
+| Role Domain | Suggested Emojis |
+|------------|-----------------|
+| Engineering | 🔧 💻 ⚙️ 🛠️ 🖥️ 🔌 🏗️ |
+| Design | 🎨 ✨ 🖌️ 🎭 👁️ |
+| Marketing | 📣 📈 🎯 📱 🌐 |
+| Sales | 💼 🤝 📊 💰 🏆 |
+| Product | 📋 🗺️ 🧭 💡 🔮 |
+| Project Mgmt | 📅 🗂️ 📌 🏭 |
+| Game Dev | 🎮 🕹️ 🎲 🏰 🎵 |
+| Testing/QA | 🧪 🔍 ✅ 🐛 📏 |
+| Security | 🔒 🛡️ 🔐 🕵️ |
+| Finance | 💰 📊 🧾 💳 |
+| Support | 🛟 📞 💬 🔧 |
+| Other | 🤖 🧠 ⚡ 🌟 🎯 |
+
+Pick **one emoji** that best represents the agent. Do not use the same emoji for every agent — vary them.
+
 ### Required Fields (must ALL be present and correct)
 
 | Field | Value | Rule |
 |-------|-------|------|
 | `id` | `<talent-id>` | From source filename, lowercase with hyphens |
-| `name` | `<display name>` | From source frontmatter `name`. If missing, derive from filename (convert hyphens to spaces, title case) |
+| `name` | `<display name>` | From source frontmatter `name`. If missing, derive from filename |
+| `avatar` | `<emoji>` | From source `emoji` field, or pick one per Avatar Rules above |
 | `description` | `<text>` | From source frontmatter `description`. Keep original wording exactly |
 | `role` | `<job title>` | A specific job title from the Role Table below |
 | `hosting` | `self` | Always `self` — never `company` |
@@ -105,6 +151,7 @@ agent_family: ""
 | Field | Rule |
 |-------|------|
 | `personality_tags` | 2-5 tags from the Personality Tags list below |
+| `tools` | List of tool names if the agent has tools |
 
 ---
 
@@ -128,11 +175,42 @@ and working methodology.
 
 > **Note:** `skills/core.md` is a template for the skill framework. The agent's full description and instructions live in `DESCRIPTION.md`. Do NOT copy the source agent body into `skills/core.md`.
 
+If the source agent has multiple distinct skills/capabilities, you may create additional skill files. Each skill is a folder with a `SKILL.md` inside:
+
+```
+skills/
+├── core.md                    # Default skill (always present)
+├── code-review/
+│   └── SKILL.md               # Additional skill with frontmatter
+└── security-audit/
+    └── SKILL.md
+```
+
+Each `SKILL.md` must have YAML frontmatter:
+
+```markdown
+---
+name: Skill Display Name
+description: One-line summary — used to decide when to activate this skill.
 ---
 
-## Step 5: Create `tools/manifest.yaml`
+# Skill Name
 
-Always use this exact content:
+Detailed instructions for the agent when this skill is active.
+
+## Guidelines
+- What to do
+- What not to do
+- Quality standards
+```
+
+---
+
+## Step 5: Set Up `tools/`
+
+### Simple agents (no tools)
+
+Create a default `tools/manifest.yaml`:
 
 ```yaml
 # Tool manifest — declare tools this agent can use
@@ -144,6 +222,78 @@ Always use this exact content:
 #   - Bash
 ```
 
+### Agents with MCP tools
+
+Place a `.mcp.json` under `tools/` using the standard MCP format. Optionally create a `TOOL.md` for each server to document usage:
+
+```
+tools/
+├── .mcp.json                  # MCP server definitions
+├── filesystem/
+│   └── TOOL.md                # What this tool does, when to use it
+└── github/
+    └── TOOL.md
+```
+
+**`tools/.mcp.json`:**
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-filesystem"],
+      "env": {}
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-github"],
+      "env": {
+        "GITHUB_TOKEN": ""
+      }
+    }
+  }
+}
+```
+
+### Agents with custom tools
+
+Each custom tool gets its own folder with `TOOL.md`, `manifest.yaml`, and optionally an implementation script:
+
+```
+tools/
+└── run-tests/
+    ├── TOOL.md                # Usage docs
+    ├── manifest.yaml          # Metadata
+    └── run.sh                 # Implementation
+```
+
+**`tools/run-tests/TOOL.md`:**
+```markdown
+---
+name: run-tests
+description: Execute the project test suite and report results.
+---
+
+# Run Tests
+
+Runs the full test suite. Use after code changes to verify correctness.
+
+## Usage
+Invoke this tool to run `npm test` and return pass/fail results.
+```
+
+**`tools/run-tests/manifest.yaml`:**
+```yaml
+name: run-tests
+type: shell
+command: bash run.sh
+parameters:
+  - name: filter
+    type: string
+    description: Test name filter pattern
+    required: false
+```
+
 ---
 
 ## Role Guidelines
@@ -153,7 +303,7 @@ Assign the **most specific job title** that matches what the agent actually does
 | Agent Domain | Available Roles |
 |-------------|----------------|
 | Design | `Designer`, `UI Designer`, `UX Designer`, `UX Researcher`, `Brand Designer` |
-| Engineering | `Engineer`, `Frontend Engineer`, `Backend Engineer`, `DevOps Engineer`, `SRE`, `Security Engineer`, `Data Engineer`, `Database Engineer`, `AI Engineer`, `ML Engineer`, `Mobile Engineer`, `Blockchain Engineer`, `Embedded Engineer`, `Software Architect` |
+| Engineering | `Engineer`, `Frontend Engineer`, `Backend Engineer`, `DevOps Engineer`, `SRE`, `Security Engineer`, `Data Engineer`, `Database Engineer`, `AI Engineer`, `ML Engineer`, `Mobile Engineer`, `Blockchain Engineer`, `Embedded Engineer`, `Software Architect`, `Code Reviewer`, `Technical Writer` |
 | Marketing | `Marketer`, `SEO Specialist`, `Content Creator`, `Content Strategist`, `Social Media Marketer`, `Growth Marketer`, `E-commerce Marketer`, `Community Manager`, `ASO Specialist` |
 | Paid Media & Advertising | `Media Buyer`, `PPC Specialist`, `Programmatic Buyer`, `Ad Strategist` |
 | Sales | `Sales Coach`, `Sales Strategist`, `Sales Engineer`, `Sales Analyst` |
@@ -164,16 +314,9 @@ Assign the **most specific job title** that matches what the agent actually does
 | Testing & QA | `QA Engineer`, `Performance Engineer`, `Accessibility Tester` |
 | Support & Operations | `Support`, `Data Analyst`, `Analyst`, `Operations` |
 | Finance & Compliance | `Finance`, `Compliance Auditor`, `Compliance Specialist`, `Security Auditor` |
-| Specialized | `Recruiter`, `Consultant`, `Advisor`, `Developer Advocate`, `Strategist`, `Training Designer`, `Technical Writer`, `Orchestrator`, `Content Creator` |
+| Specialized | `Recruiter`, `Consultant`, `Advisor`, `Developer Advocate`, `Strategist`, `Training Designer`, `Orchestrator` |
 
-**How to pick:** Read the agent's name and description. Find the role that most precisely describes their primary function. For example:
-- "PPC Campaign Strategist" → `PPC Specialist`
-- "Programmatic Media Buyer" → `Programmatic Buyer`
-- "App Store Optimization Specialist" → `ASO Specialist`
-- "Inclusive Visuals Specialist" → `Designer`
-- "Narrative Designer" → `Narrative Designer`
-
-If nothing in the table fits precisely, use the closest match. Never fall back to just "Specialist".
+**How to pick:** Read the agent's name and description. Find the role that most precisely describes their primary function. If nothing fits precisely, use the closest match. Never fall back to just "Specialist".
 
 ---
 
@@ -196,19 +339,120 @@ Choose 2-5 from this list, based on the agent's described working style and pers
 
 ---
 
+## Converting from Claude Code Agent
+
+A Claude Code agent typically has:
+- `CLAUDE.md` — project instructions and constraints
+- `.mcp.json` — MCP server configurations
+- No `profile.yaml`
+
+### Conversion steps:
+
+**1. Extract system prompt from `CLAUDE.md`**
+
+Read `CLAUDE.md` and copy its content into `profile.yaml` → `system_prompt_template` (summarized to 1-2 sentences). The full `CLAUDE.md` content goes into `DESCRIPTION.md`.
+
+**2. Extract skills from the codebase**
+
+Look for distinct capabilities described in `CLAUDE.md` or in any `skills/` directory. Each logical capability becomes a skill folder.
+
+If `CLAUDE.md` has sections like "## Code Review", "## Debugging" — each becomes a separate skill.
+
+**3. Copy `.mcp.json` into `tools/`**
+
+```bash
+mkdir -p my-talent/tools
+cp /path/to/claude-agent/.mcp.json my-talent/tools/.mcp.json
+```
+
+No conversion needed — `.mcp.json` keeps the standard format.
+
+**4. Set agent_family and auth_method**
+
+```yaml
+agent_family: claude
+auth_method: cli
+hosting: self
+```
+
+---
+
+## Converting from OpenClaw Agent
+
+An OpenClaw agent typically has a graph-based workflow definition, channel configurations, and `launch.sh`.
+
+### Conversion steps:
+
+1. **Map the workflow graph to skills** — each node/stage becomes a skill folder
+2. **Set `agent_family: openclaw`** and `hosting: self`
+3. **Preserve `launch.sh`** — the platform uses it to start self-hosted agents
+4. **Extract channel configs into skills** — create skills for channel-specific behavior
+
+---
+
+## Converting from a Generic Python/Node Agent
+
+For custom agents (LangChain, AutoGen, CrewAI, etc.):
+
+1. **Find the system prompt** — look for `system_message`, `system_prompt`, or `instructions` in source code or config
+2. **Identify skills** — distinct task handlers → each becomes a skill folder
+3. **Identify tools** — tool definitions → `tools/manifest.yaml` or custom tool folders
+4. **Set hosting** — `company` (stateless API), `self` (runs on user's machine), or `remote` (external HTTP webhook)
+
+---
+
 ## Common Mistakes — Read This
 
 | # | Mistake | Correct Behavior |
 |---|---------|-----------------|
-| 1 | Modifying `DESCRIPTION.md` content (removing emojis, reformatting, summarizing) | Copy source body **exactly as-is**, including all emojis, formatting, code blocks |
-| 2 | Forgetting to create `DESCRIPTION.md` | This is the MOST IMPORTANT file. Create it FIRST |
+| 1 | Modifying `DESCRIPTION.md` content (removing emojis, reformatting) | Copy source body **exactly as-is**, byte-for-byte |
+| 2 | Forgetting `DESCRIPTION.md` | This is the MOST IMPORTANT file. Create it FIRST |
 | 3 | Copying source body into `skills/core.md` instead of `DESCRIPTION.md` | Source body → `DESCRIPTION.md`. `skills/core.md` uses the default template |
-| 4 | Setting `hosting: company` | Must be `self` |
-| 5 | Setting `api_provider: openrouter` | Must be `anthropic` |
-| 6 | Using generic role like "Specialist" or "Engineer" | Use the most specific role from the Role Table |
-| 7 | Making `system_prompt_template` too long | Keep it to 1-2 sentences max |
-| 8 | Forgetting `tools/manifest.yaml` | Always create it, even though it's just a template |
-| 9 | Wrong `id` (doesn't match directory name / source filename) | Must match exactly |
+| 4 | Missing `avatar` field in `profile.yaml` | Always set — use source `emoji` or pick a relevant one |
+| 5 | Setting `hosting: company` | Must be `self` |
+| 6 | Setting `api_provider: openrouter` | Must be `anthropic` |
+| 7 | Using generic role like "Specialist" | Use the most specific role from the Role Table |
+| 8 | Making `system_prompt_template` too long | Keep it to 1-2 sentences max |
+| 9 | Forgetting `tools/` directory | Always create it, even if just a template manifest |
+| 10 | Wrong `id` (doesn't match directory name) | Must match exactly |
+
+---
+
+## Validation Checklist
+
+Before publishing, verify:
+
+- [ ] `profile.yaml` has `id`, `name`, `avatar`, `description`, `role`, `system_prompt_template`
+- [ ] `avatar` is a single emoji (from source or picked per Avatar Rules)
+- [ ] `DESCRIPTION.md` exists with verbatim agent content
+- [ ] `skills/core.md` exists (template or custom)
+- [ ] Each skill in `profile.yaml` → `skills` has a matching file
+- [ ] `tools/` directory exists with at least `manifest.yaml`
+- [ ] `description` is specific (not "An AI agent that helps with tasks")
+- [ ] `hosting: self` and `api_provider: anthropic` are set correctly
+- [ ] No secrets/API keys are hardcoded anywhere
+- [ ] No illegal content, political propaganda, or harmful material in any file
+
+---
+
+## Publishing
+
+```bash
+# Push to GitHub
+git init && git add -A && git commit -m "Initial talent"
+gh repo create my-talent --public --push
+
+# Register on Talent Market
+# Go to https://carbonkites.com → Add Talent → paste your repo URL
+```
+
+Or via API:
+```bash
+curl -X POST https://carbonkites.com/api/v1/repos \
+  -H "X-API-Key: tm_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://github.com/you/my-talent"}'
+```
 
 ---
 
@@ -247,12 +491,13 @@ You are **SEO Specialist**, an expert in technical SEO...
 ...
 ```
 
-Note: The emojis `🔍` and `🧠` in the headings are **preserved exactly** from the source.
+Note: The emojis `🔍` and `🧠` are **preserved exactly** from the source.
 
 **`marketing-seo-specialist/profile.yaml`:**
 ```yaml
 id: marketing-seo-specialist
 name: SEO Specialist
+avatar: "🔍"
 description: >
   Expert in technical SEO, content optimization, and search strategy
 role: SEO Specialist
